@@ -1,66 +1,89 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
-export default function Home() {
+export default function Login() {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
+  const [erro, setErro] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function handleLogin(e: any) {
+    e.preventDefault()
+    setLoading(true)
+    setErro('')
+
+    try {
+      const res = await fetch('http://localhost:3001/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: senha })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setErro(data.erro || 'Erro ao entrar')
+        return
+      }
+
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('tenant', JSON.stringify(data.tenant))
+      router.push('/dashboard')
+    } catch (err) {
+      setErro('Erro de conexão com o servidor')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div style={{minHeight:'100vh',background:'#030712',display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{background:'#111827',padding:'2rem',borderRadius:'1rem',width:'100%',maxWidth:'400px',border:'1px solid #1f2937'}}>
+        <h1 style={{color:'white',fontSize:'1.5rem',fontWeight:'bold',marginBottom:'0.5rem'}}>BotZap</h1>
+        <p style={{color:'#9ca3af',marginBottom:'2rem'}}>Entre na sua conta</p>
+
+        <form onSubmit={handleLogin}>
+          <div style={{marginBottom:'1rem'}}>
+            <label style={{color:'#9ca3af',fontSize:'0.875rem',display:'block',marginBottom:'0.25rem'}}>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="seu@email.com"
+              required
+              style={{width:'100%',background:'#1f2937',color:'white',borderRadius:'0.5rem',padding:'0.75rem 1rem',border:'1px solid #374151',outline:'none',boxSizing:'border-box'}}
             />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </div>
+
+          <div style={{marginBottom:'1.5rem'}}>
+            <label style={{color:'#9ca3af',fontSize:'0.875rem',display:'block',marginBottom:'0.25rem'}}>Senha</label>
+            <input
+              type="password"
+              value={senha}
+              onChange={e => setSenha(e.target.value)}
+              placeholder="••••••••"
+              required
+              style={{width:'100%',background:'#1f2937',color:'white',borderRadius:'0.5rem',padding:'0.75rem 1rem',border:'1px solid #374151',outline:'none',boxSizing:'border-box'}}
+            />
+          </div>
+
+          {erro && <p style={{color:'#f87171',fontSize:'0.875rem',marginBottom:'1rem'}}>{erro}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{width:'100%',background:loading?'#166534':'#22c55e',color:'white',fontWeight:'500',padding:'0.75rem',borderRadius:'0.5rem',border:'none',cursor:'pointer',fontSize:'1rem'}}
           >
-            Documentation
-          </a>
-        </div>
-      </main>
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
+        </form>
+
+        <p style={{color:'#9ca3af',fontSize:'0.875rem',marginTop:'1.5rem',textAlign:'center'}}>
+          Não tem conta? <a href="/registro" style={{color:'#4ade80'}}>Criar conta</a>
+        </p>
+      </div>
     </div>
-  );
+  )
 }
